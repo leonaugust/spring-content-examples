@@ -1,5 +1,7 @@
 package examples.rest;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.S3Object;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jConfiguration;
 import com.github.paulcwarren.ginkgo4j.Ginkgo4jSpringRunner;
 import com.jayway.restassured.RestAssured;
@@ -13,6 +15,7 @@ import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -36,8 +39,14 @@ public class S3RestExamplesTest {
 	
 	@Autowired
 	private ClaimFormStore claimFormStore;
-	
-    @LocalServerPort
+
+	@Autowired
+	private AmazonS3 client;
+
+	@Value("${spring.content.s3.bucket:#{environment.AWS_BUCKET}}")
+	private String bucket;
+
+	@LocalServerPort
     int port;
     
     private Claim existingClaim;
@@ -61,7 +70,7 @@ public class S3RestExamplesTest {
     		    	existingClaim = new Claim();
     		    	existingClaim.setFirstName("John");
     		    	existingClaim.setLastName("Smith");
-    		    	claimRepo.save(existingClaim);
+    		    	existingClaim = claimRepo.save(existingClaim);
     			});
     			It("should be POSTable with new content with 201 Created", () -> {
     				// assert content does not exist
@@ -109,7 +118,11 @@ public class S3RestExamplesTest {
 	    					.contentType(Matchers.startsWith("plain/text"))
 	    					.body(Matchers.equalTo("This is plain text content!"));
     				});
-    				It("should be POSTable with new content with 200 OK", () -> {
+					It("should set the mime type as s3 object metadata", () -> {
+						S3Object s3Object = client.getObject(bucket, existingClaim.getClaimForm().getContentId());
+						s3Object.getObjectMetadata().getContentType().equals("text/plain");
+					});
+					It("should be POSTable with new content with 200 OK", () -> {
     					String newContent = "This is new content";
     					
     					given()

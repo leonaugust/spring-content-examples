@@ -1,5 +1,8 @@
 package tests.smoke;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import examples.models.Claim;
 import examples.models.ClaimForm;
 import examples.repositories.ClaimRepository;
@@ -7,10 +10,8 @@ import examples.stores.ClaimFormStore;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.AfterEach;
 import static com.github.paulcwarren.ginkgo4j.Ginkgo4jDSL.BeforeEach;
